@@ -11,14 +11,5 @@ export { default as SubmitBtn } from "./SubmitBtn";
 export { default as ChartsContainer } from "./ChartsContainer";
 export { default as StatsContainer } from "./StatsContainer";
 export { default as PageBtnContainer } from "./PageBtnContainer";
+export { default as Loading } from "./Loading";
 
-// export { default as HomeLayout } from "./HomeLayout";
-// export { default as Register } from "./Register";
-// export { default as Login } from "./Login";
-// export { default as Error } from "./Error";
-// export { default as Stats } from "./Stats";
-// export { default as AllJobs } from "./AllJobs";
-// export { default as AddJob } from "./AddJob";
-// export { default as EditJob } from "./EditJob";
-// export { default as Profile } from "./Profile";
-// export { default as Admin } from "./Admin";
