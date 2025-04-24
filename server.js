@@ -13,11 +13,25 @@ import { fileURLToPath } from "url";
 import cloudinary from "cloudinary";
 import { dirname } from "path";
 import path from "path";
-
+import helmet from "helmet";
+import mongoSanitize from "express-mongo-sanitize";
+//import cors from 'cors';
 const app = express();
+
+import cors from "cors";
+
+// app.use(
+//   cors({
+//     origin: "http://localhost:5173", // Or wherever your frontend is running
+//     credentials: true,
+//   })
+// );
+
 
 app.use(cookieParser());
 app.use(express.json());
+app.use(mongoSanitize());
+app.use(helmet());
 connectDb();
 
 if (process.env.NODE_ENV === "development") {
@@ -28,13 +42,6 @@ if (process.env.NODE_ENV === "development") {
 const __dirname = dirname(fileURLToPath(import.meta.url));
 app.use(express.static(path.resolve(__dirname, "./client/dist")));
 const PORT = process.env.PORT || 5100;
-
-app.get("/", (req, res) => {
-  res.send({
-    success: true,
-    message: "<h2>Hello from SERVER ✅</h2>",
-  });
-});
 
 //cloudinary
 cloudinary.config({

@@ -20,37 +20,39 @@ export async function register(req, res) {
 
 export async function login(req, res) {
   try {
-    const user = await User.findOne({ email: req.body.email });
+    console.log("🌐 Login hit: ", req.body.email);
 
-    // ✅ First check if user exists
+    const user = await User.findOne({ email: req.body.email });
     if (!user) {
       throw new UnauthenticatedError("Invalid Credentials! 🔴");
     }
 
-    // ✅ Only then compare passwords
     const isPasswordMatching = await comparePassword(
       req.body.password,
       user.password
     );
-
     if (!isPasswordMatching) {
       throw new UnauthenticatedError("Invalid Password! ❌🔑");
     }
 
     const token = createJWT({ userId: user._id, role: user.role });
     const oneDayInMs = 1000 * 60 * 60 * 24;
+
     res.cookie("token", token, {
       httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
       expires: new Date(Date.now() + oneDayInMs),
-      secure: process.env.NODE_ENV === "production", //only works with 'https', thus- PRODUCTION
+      sameSite: "Lax",
     });
-    res.status(StatusCodes.OK).send({
+
+    console.log("✅ Token set");
+    res.status(StatusCodes.OK).json({
       success: true,
       message: "User Logged In Successfully! ☑️",
       user,
     });
   } catch (err) {
-    console.error(err);
+    console.error("🔴 Login error:", err);
     res.status(err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: err.message || "Something went wrong ❌",
@@ -58,15 +60,19 @@ export async function login(req, res) {
   }
 }
 
+
 export function logout(_, res) {
   try {
-    res.cookie("token", "logging-out", {
+    res.cookie("token", "", {
       httpOnly: true,
-      expires: new Date(Date.now()),
+      expires: new Date(0),
+      sameSite: "Lax",
+      secure: process.env.NODE_ENV === "production",
     });
-    res
-      .status(StatusCodes.OK)
-      .json({ success: true, message: "User Logged Out Successfully ✅" });
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "User Logged Out Successfully ✅",
+    });
   } catch (err) {
     console.error(err);
     res.status(err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR).json({

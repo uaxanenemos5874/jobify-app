@@ -16,10 +16,16 @@ export const loginAction =
       return redirect("/dashboard");
     } catch (err) {
       console.log("🔴ERROR:", err);
-      toast.error(`${err?.response?.statusText}, ${err?.message}`);
-      return err;
+      const message =
+        err?.response?.data?.message ||
+        err?.response?.data?.msg ||
+        err?.message ||
+        "Login failed. Try again!";
+      toast.error(`🔴 ${message}`);
+      return null;
     }
   };
+
 
 function Login() {
   const navigate = useNavigate();

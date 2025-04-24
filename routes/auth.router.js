@@ -6,8 +6,18 @@ import {
 } from "../middlewares/validation.middleware.js";
 const authRouter = Router();
 
-authRouter.post("/register", validateRegisterInput, register);
-authRouter.post("/login", validateLoginInput, login);
+import rateLimiter from "express-rate-limit";
+
+const apiLimiter = rateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: {
+    msg: "IP rate-limit exceeded! TRY AGAIN IN 15 MINUTES ⚠️⏱️",
+  },
+});
+
+authRouter.post("/register", apiLimiter, validateRegisterInput, register);
+authRouter.post("/login", apiLimiter, validateLoginInput, login);
 authRouter.get("/logout", logout);
 
 export default authRouter;
