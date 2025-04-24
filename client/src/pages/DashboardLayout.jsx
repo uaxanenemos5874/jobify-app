@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import {
   Outlet,
   redirect,
@@ -42,6 +42,8 @@ function DashboardLayout({ queryClient }) {
   const isPageLoading = navigation.state === "loading";
   const [showSidebar, setShowSidebar] = useState(true);
   const [isDarkTheme, setIsDarkTheme] = useState(checkDefaultTheme());
+  //Axios Interceptors states
+  const [isAuthError, setIsAuthError] = useState(false);
 
   function toggleDarkTheme() {
     const newDarkTheme = !isDarkTheme;
@@ -62,6 +64,24 @@ function DashboardLayout({ queryClient }) {
   }
 
   //console.log(user);
+
+  //Axios Interceptors
+  customFetch.interceptors.response.use(
+    (response) => {
+      return response;
+    },
+    (error) => {
+      if (error?.response?.status === 401) {
+        setIsAuthError(true);
+      }
+      return Promise.reject(error);
+    }
+  );
+
+  useEffect(() => {
+    if (!isAuthError) return;
+    logoutUser();
+  }, [isAuthError]);
 
   return (
     <DashboardCtxt.Provider
