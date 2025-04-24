@@ -1,26 +1,30 @@
 import { FormRow, SubmitBtn } from "../components";
 import Wrapper from "../assets/wrappers/DashboardFormPage";
-import { useOutletContext } from "react-router-dom";
+import { redirect, useOutletContext } from "react-router-dom";
 import { Form } from "react-router-dom";
 import customFetch from "../utils/customFetch";
 import { toast } from "react-toastify";
 
-export async function profileAction({ request }) {
-  const formData = await request.formData();
-  const file = formData.get("avatar");
-  if (file && file.size > 500000) {
-    toast.error("Image-size too large!");
-    return null;
-  }
-  try {
-    await customFetch.patch(`/users/update-user`, formData);
-    toast.success("Profile Updated Successfully!");
-  } catch (error) {
-    console.log("🔴 ERROR: ", error);
-    toast.error(error?.message);
-  }
-  return null;
-}
+export const profileAction =
+  (queryClient) =>
+  async ({ request }) => {
+    const formData = await request.formData();
+    const file = formData.get("avatar");
+    if (file && file.size > 500000) {
+      toast.error("Image-size too large!");
+      return null;
+    }
+    try {
+      await customFetch.patch(`/users/update-user`, formData);
+      queryClient.invalidateQueries(["currentUser"]);
+      toast.success("Profile Updated Successfully!");
+      return redirect("/dashboard");
+    } catch (error) {
+      console.log("🔴 ERROR: ", error);
+      toast.error(error?.message);
+      return null;
+    }
+  };
 
 function Profile() {
   const { currentUser } = useOutletContext();
