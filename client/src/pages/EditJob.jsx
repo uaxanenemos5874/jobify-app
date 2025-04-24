@@ -5,33 +5,51 @@ import { JOB_STATUS, JOB_TYPE } from "../../../utils/constants";
 import { Form, redirect } from "react-router-dom";
 import { toast } from "react-toastify";
 import customFetch from "../utils/customFetch";
+import { useQuery } from "@tanstack/react-query";
 
-export const editPageLoader = async ({ params }) => {
-  try {
-    const { data } = await customFetch.get(`/jobs/${params.id}`);
-    return data;
-  } catch (error) {
-    toast.error(error?.response?.data?.msg);
-    return redirect(`/dashboard/all-jobs`);
-  }
+const singleJobQuery = (id) => {
+  return {
+    queryKey: ["singleJob", id],
+    queryFn: async () => {
+      const { data } = await customFetch.get(`/jobs/${id}`);
+      return data;
+    },
+  };
 };
 
-export const editPageAction = async ({ request, params }) => {
-  const formData = await request.formData();
-  const jobData = Object.fromEntries(formData);
-  try {
-    await customFetch.patch(`/jobs/${params.id}`, jobData);
-    toast.success("Job Edited Successfully");
-    return redirect("/dashboard/all-jobs");
-  } catch (error) {
-    toast.error(error?.response?.data?.msg);
-    return error;
-  }
-};
+export const editPageLoader =
+  (queryClient) =>
+  async ({ params }) => {
+    try {
+      await queryClient.ensureQueryData(singleJobQuery(params.id));
+      return params.id;
+    } catch (error) {
+      toast.error(error?.response?.data?.msg);
+      return redirect(`/dashboard/all-jobs`);
+    }
+  };
+
+export const editPageAction =
+  (queryClient) =>
+  async ({ request, params }) => {
+    const formData = await request.formData();
+    const jobData = Object.fromEntries(formData);
+    try {
+      await customFetch.patch(`/jobs/${params.id}`, jobData);
+      queryClient.invalidateQueries(["jobs"]);
+      toast.success("Job Edited Successfully");
+      return redirect("/dashboard/all-jobs");
+    } catch (error) {
+      toast.error(error?.response?.data?.msg);
+      return error;
+    }
+  };
 
 function EditJob() {
-  const { singleJob } = useLoaderData();
-  console.log(singleJob);
+  const id = useLoaderData();
+  const {
+    data: { singleJob },
+  } = useQuery(singleJobQuery(id));
   return (
     <Wrapper>
       <Form className="form" method="post">
